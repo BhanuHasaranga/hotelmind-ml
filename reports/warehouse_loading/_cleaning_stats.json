@@ -1,0 +1,212 @@
+{
+  "loaded_rows": 119390,
+  "cleaned_rows": 87395,
+  "rejected_rows": 31995,
+  "execution_seconds": 2.2190353000041796,
+  "warnings": [
+    "check_cancellation_consistency: 1014 reservation_status/is_canceled mismatches"
+  ],
+  "errors": [],
+  "steps": {
+    "dedupe_full_row": {
+      "rows_before": 119390,
+      "rows_after": 87396,
+      "values_changed": 31994,
+      "reason": "dropped exact-duplicate rows across all 32 source columns, keeping first occurrence"
+    },
+    "replace_undefined_with_null": {
+      "rows_before": 87396,
+      "rows_after": 87396,
+      "values_changed": 499,
+      "reason": "replaced literal 'Undefined' placeholder with NULL",
+      "per_column": {
+        "meal": 492,
+        "market_segment": 2,
+        "distribution_channel": 5
+      }
+    },
+    "impute_missing_children": {
+      "rows_before": 87396,
+      "rows_after": 87396,
+      "values_changed": 4,
+      "reason": "imputed missing children as 0"
+    },
+    "impute_missing_country": {
+      "rows_before": 87396,
+      "rows_after": 87396,
+      "values_changed": 452,
+      "reason": "imputed missing country as 'UNK'"
+    },
+    "fix_country_code_cn": {
+      "rows_before": 87396,
+      "rows_after": 87396,
+      "values_changed": 1093,
+      "reason": "normalized 'CN' to ISO-3 'CHN'"
+    },
+    "clean_adr": {
+      "rows_before": 87396,
+      "rows_after": 87395,
+      "values_changed": 435,
+      "reason": "dropped 1 rows with adr < 0, then winsorized 435 rows above the 99.5% percentile (cap=285.00)",
+      "rows_dropped_negative": 1,
+      "winsor_cap": 285.0
+    },
+    "flag_adults_outliers": {
+      "rows_before": 87395,
+      "rows_after": 87395,
+      "values_changed": 12,
+      "reason": "flagged adults > 10 as is_adults_outlier; raw adults values left unmodified"
+    },
+    "check_cancellation_consistency": {
+      "rows_before": 87395,
+      "rows_after": 87395,
+      "values_changed": 0,
+      "reason": "cross-validated reservation_status=='Canceled' against is_canceled==1 (reporting only, no rows modified)",
+      "mismatch_count": 1014,
+      "sample_mismatch_indices": [
+        122,
+        328,
+        343,
+        467,
+        472
+      ]
+    },
+    "normalize_categoricals": {
+      "rows_before": 87395,
+      "rows_after": 87395,
+      "values_changed": 0,
+      "reason": "trimmed whitespace on categorical string columns",
+      "per_column": {
+        "hotel": 0,
+        "meal": 0,
+        "country": 0,
+        "market_segment": 0,
+        "distribution_channel": 0,
+        "reserved_room_type": 0,
+        "assigned_room_type": 0,
+        "deposit_type": 0,
+        "customer_type": 0,
+        "reservation_status": 0
+      }
+    },
+    "build_arrival_date": {
+      "rows_before": 87395,
+      "rows_after": 87395,
+      "values_changed": 87395,
+      "reason": "constructed arrival_date from arrival_date_year/month(name)/day",
+      "unparseable_dates": 0
+    },
+    "convert_dtypes": {
+      "rows_before": 87395,
+      "rows_after": 87395,
+      "values_changed": 26,
+      "reason": "converted columns to nullable Int64 / float64 / category / datetime64 dtypes",
+      "dtype_changes": {
+        "hotel": [
+          "string",
+          "category"
+        ],
+        "is_canceled": [
+          "int64",
+          "Int64"
+        ],
+        "stays_in_weekend_nights": [
+          "int64",
+          "Int64"
+        ],
+        "stays_in_week_nights": [
+          "int64",
+          "Int64"
+        ],
+        "adults": [
+          "int64",
+          "Int64"
+        ],
+        "children": [
+          "float64",
+          "Int64"
+        ],
+        "babies": [
+          "int64",
+          "Int64"
+        ],
+        "meal": [
+          "string",
+          "category"
+        ],
+        "country": [
+          "string",
+          "category"
+        ],
+        "market_segment": [
+          "string",
+          "category"
+        ],
+        "distribution_channel": [
+          "string",
+          "category"
+        ],
+        "is_repeated_guest": [
+          "int64",
+          "Int64"
+        ],
+        "previous_cancellations": [
+          "int64",
+          "Int64"
+        ],
+        "previous_bookings_not_canceled": [
+          "int64",
+          "Int64"
+        ],
+        "reserved_room_type": [
+          "string",
+          "category"
+        ],
+        "assigned_room_type": [
+          "string",
+          "category"
+        ],
+        "booking_changes": [
+          "int64",
+          "Int64"
+        ],
+        "deposit_type": [
+          "string",
+          "category"
+        ],
+        "agent": [
+          "float64",
+          "Int64"
+        ],
+        "company": [
+          "float64",
+          "Int64"
+        ],
+        "days_in_waiting_list": [
+          "int64",
+          "Int64"
+        ],
+        "customer_type": [
+          "string",
+          "category"
+        ],
+        "required_car_parking_spaces": [
+          "int64",
+          "Int64"
+        ],
+        "total_of_special_requests": [
+          "int64",
+          "Int64"
+        ],
+        "reservation_status": [
+          "string",
+          "category"
+        ],
+        "reservation_status_date": [
+          "str",
+          "datetime64[us]"
+        ]
+      }
+    }
+  }
+}

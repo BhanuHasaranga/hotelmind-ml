@@ -1,0 +1,5 @@
+room_type_key,room_type_id,room_type_name,base_price_multiplier,source_code_examples
+1,1,Standard,1.0,"A, B, C"
+2,2,Deluxe,1.4,"D, E, F, G"
+3,3,Suite,2.0,"H, L"
+0,0,Unmapped,,"I, K, P"
