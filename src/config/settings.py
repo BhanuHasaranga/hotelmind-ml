@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     DATA_RAW_DIR: str = "data/raw"
     DATA_PROCESSED_DIR: str = "data/processed"
     DATA_WAREHOUSE_DIR: str = "data/warehouse"
+    DATA_FEATURES_DIR: str = "data/features"
     SQL_DIR: str = "sql"
 
     LOG_LEVEL: str = "INFO"
@@ -62,8 +63,32 @@ class Settings(BaseSettings):
         return path
 
     @property
+    def data_features_dir_path(self) -> Path:
+        path = PROJECT_ROOT / self.DATA_FEATURES_DIR
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    @property
     def warehouse_loading_reports_dir_path(self) -> Path:
         path = self.reports_dir_path / "warehouse_loading"
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    @property
+    def features_reports_dir_path(self) -> Path:
+        path = self.reports_dir_path / "features"
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    @property
+    def models_reports_dir_path(self) -> Path:
+        path = self.reports_dir_path / "models"
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    @property
+    def final_phase4_reports_dir_path(self) -> Path:
+        path = self.reports_dir_path / "final_phase4"
         path.mkdir(parents=True, exist_ok=True)
         return path
 

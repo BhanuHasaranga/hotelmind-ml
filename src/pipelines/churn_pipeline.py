@@ -18,19 +18,28 @@ class ChurnPipeline(BasePipeline):
     module_name = "churn"
 
     def load_data(self, **kwargs) -> pd.DataFrame:
-        from src.database.query import run_query
+        dim_guest = pd.read_parquet(settings.data_warehouse_dir_path / "dim_guest.parquet")
+        fact_booking = pd.read_parquet(settings.data_warehouse_dir_path / "fact_booking.parquet")
 
-        sql_path = settings.sql_dir_path / "guest.sql"
-        return run_query(sql_path)
+        total_nights = fact_booking.groupby("guest_key")["nights"].sum().rename("total_nights")
+        df = dim_guest.merge(total_nights, left_on="guest_key", right_index=True, how="left")
+        df["total_nights"] = df["total_nights"].fillna(0)
+        return df
 
     def clean(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.dropna(subset=["last_stay_date"]).reset_index(drop=True)
         return handle_missing_values(
-            df, strategy="median", columns=["lifetime_spend", "total_nights", "avg_spend_per_stay"]
+            df, strategy="median", columns=["lifetime_spend", "total_nights"]
         )
 
     def engineer_features(self, df: pd.DataFrame) -> pd.DataFrame:
-        df = label_churn(df)
+        # Anchor the churn snapshot to just after the dataset's own date range
+        # rather than the real system clock: the source data only covers
+        # 2015-2017, so using today() would make every guest's recency exceed
+        # CHURN_WINDOW_DAYS and collapse the label to a single class. See
+        # reports/final_phase4/known_limitations.md.
+        snapshot_date = (df["last_stay_date"].max() + pd.Timedelta(days=1)).date()
+        df = label_churn(df, snapshot_date=snapshot_date)
         df = add_rfm_features(df)
         return df
 

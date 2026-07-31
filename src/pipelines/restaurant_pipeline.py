@@ -5,9 +5,11 @@ import pandas as pd
 from src.config.constants import MEAL_PERIODS
 from src.config.settings import settings
 from src.features.calendar_features import add_calendar_features
+from src.features.occupancy_aggregation import load_daily_occupancy
 from src.features.preprocessing import handle_missing_values
 from src.features.restaurant_features import derive_meal_quantities
 from src.features.time_series_features import add_lag_features, add_rolling_features
+from src.pipelines.synthetic_data import ensure_restaurant_seed
 from src.models.base import BaseMLModel
 from src.models.restaurant.xgboost_model import RestaurantDemandModel
 from src.pipelines.base_pipeline import BasePipeline, default_time_series_split
@@ -30,17 +32,13 @@ class RestaurantPipeline(BasePipeline):
         self.end_date = end_date
 
     def load_data(self, **kwargs) -> pd.DataFrame:
-        from src.database.query import run_query
+        daily_occupancy = load_daily_occupancy()  # unfiltered: seed covers all branches
+        seed_path = ensure_restaurant_seed(daily_occupancy)
+        df = pd.read_csv(seed_path, parse_dates=[DATE_COL])
 
-        sql_path = settings.sql_dir_path / "restaurant.sql"
-        return run_query(
-            sql_path,
-            {
-                "branch_id": self.branch_id,
-                "start_date": self.start_date,
-                "end_date": self.end_date,
-            },
-        )
+        df = df[df["branch_id"] == self.branch_id].reset_index(drop=True)
+        mask = (df[DATE_COL] >= self.start_date) & (df[DATE_COL] <= self.end_date)
+        return df[mask].reset_index(drop=True)
 
     def clean(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.dropna(subset=["total_revenue"]).reset_index(drop=True)

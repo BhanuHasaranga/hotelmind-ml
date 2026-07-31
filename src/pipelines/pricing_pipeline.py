@@ -4,6 +4,7 @@ import pandas as pd
 
 from src.config.settings import settings
 from src.features.calendar_features import add_calendar_features
+from src.features.occupancy_aggregation import load_daily_occupancy
 from src.features.preprocessing import (
     encode_categoricals,
     handle_missing_values,
@@ -37,17 +38,10 @@ class PricingPipeline(BasePipeline):
         self.scaler = None
 
     def load_data(self, **kwargs) -> pd.DataFrame:
-        from src.database.query import run_query
-
-        sql_path = settings.sql_dir_path / "pricing.sql"
-        return run_query(
-            sql_path,
-            {
-                "branch_id": self.branch_id,
-                "start_date": self.start_date,
-                "end_date": self.end_date,
-            },
-        )
+        df = load_daily_occupancy(branch_id=self.branch_id)
+        df = df.rename(columns={"occupancy_date": DATE_COL})
+        mask = (df[DATE_COL] >= self.start_date) & (df[DATE_COL] <= self.end_date)
+        return df[mask].reset_index(drop=True)
 
     def clean(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.dropna(subset=[TARGET_COL]).reset_index(drop=True)

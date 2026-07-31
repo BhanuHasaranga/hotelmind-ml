@@ -4,7 +4,6 @@ import pandas as pd
 
 from src.config.constants import churn_probability_to_risk_level
 from src.config.settings import settings
-from src.database.query import run_query
 from src.features.churn_features import add_rfm_features, label_churn
 from src.models.churn.random_forest_model import ChurnRandomForestModel
 from src.models.churn.xgboost_model import ChurnXGBoostModel
@@ -39,12 +38,22 @@ def predict_churn(guest_id: str) -> dict:
     model = _MODEL_CLASSES[model_key]()
     model.load(settings.model_dir_path / f"churn_{model_key}.pkl")
 
-    guests = run_query(settings.sql_dir_path / "guest.sql")
-    guest_row = guests[guests["guest_id"] == guest_id]
+    dim_guest = pd.read_parquet(settings.data_warehouse_dir_path / "dim_guest.parquet")
+    fact_booking = pd.read_parquet(settings.data_warehouse_dir_path / "fact_booking.parquet")
+    total_nights = fact_booking.groupby("guest_key")["nights"].sum().rename("total_nights")
+    guests = dim_guest.merge(total_nights, left_on="guest_key", right_index=True, how="left")
+    guests["total_nights"] = guests["total_nights"].fillna(0)
+
+    guest_row = guests[guests["guest_id"].astype(str) == str(guest_id)]
     if guest_row.empty:
         raise ValueError(f"guest_id {guest_id} not found")
 
-    labeled = label_churn(guest_row)
+    # Anchor to the dataset's own date range, matching training (see
+    # src/pipelines/churn_pipeline.py) -- the source data only covers
+    # 2015-2017, so recency_days against the real system clock would be
+    # wildly out-of-distribution for the trained model.
+    snapshot_date = (guests["last_stay_date"].max() + pd.Timedelta(days=1)).date()
+    labeled = label_churn(guest_row, snapshot_date=snapshot_date)
     if labeled.empty:
         # Guest has zero lifetime bookings -- churn is not meaningful yet.
         return {

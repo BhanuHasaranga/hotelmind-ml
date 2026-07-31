@@ -1,5 +1,3 @@
-import datetime as dt
-
 import pandas as pd
 
 from src.config.settings import settings
@@ -15,6 +13,12 @@ def forecast_occupancy(
     Prophet is the primary model (native confidence interval); XGBoost's
     point forecast is included as `model_used` comparison metadata only
     when Prophet's forecast is unavailable.
+
+    The forecast starts the day after the model's own training data ends,
+    not the real system clock: the source dataset only covers 2015-2017, so
+    anchoring to today() would extrapolate roughly a decade past the
+    training window and produce meaningless values. See
+    reports/final_phase4/known_limitations.md.
     """
     horizon_days = horizon_days or settings.FORECAST_HORIZON_DAYS
 
@@ -22,10 +26,11 @@ def forecast_occupancy(
     prophet_path = settings.model_dir_path / "occupancy_prophet.pkl"
     prophet_model.load(prophet_path)
 
+    last_training_date = prophet_model.model.history["ds"].max()
     future_dates = pd.DataFrame(
         {
             "occupancy_date": pd.date_range(
-                start=dt.date.today(), periods=horizon_days, freq="D"
+                start=last_training_date + pd.Timedelta(days=1), periods=horizon_days, freq="D"
             )
         }
     )

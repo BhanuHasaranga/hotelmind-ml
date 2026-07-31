@@ -4,6 +4,7 @@ import pandas as pd
 
 from src.config.settings import settings
 from src.features.calendar_features import add_calendar_features
+from src.features.occupancy_aggregation import load_daily_occupancy
 from src.features.preprocessing import handle_missing_values
 from src.features.time_series_features import add_lag_features, add_rolling_features
 from src.models.base import BaseMLModel
@@ -32,17 +33,9 @@ class OccupancyPipeline(BasePipeline):
         self.end_date = end_date
 
     def load_data(self, **kwargs) -> pd.DataFrame:
-        from src.database.query import run_query
-
-        sql_path = settings.sql_dir_path / "occupancy.sql"
-        return run_query(
-            sql_path,
-            {
-                "branch_id": self.branch_id,
-                "start_date": self.start_date,
-                "end_date": self.end_date,
-            },
-        )
+        df = load_daily_occupancy(branch_id=self.branch_id)
+        mask = (df[DATE_COL] >= self.start_date) & (df[DATE_COL] <= self.end_date)
+        return df[mask].reset_index(drop=True)
 
     def clean(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.dropna(subset=[TARGET_COL]).reset_index(drop=True)
