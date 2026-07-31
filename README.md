@@ -26,6 +26,18 @@ Terraform, Docker changes, monitoring. Those belong to later phases.
 - [doc/architecture.md](doc/architecture.md) — pipeline design, folder structure, model storage convention, scaffolded-only components
 - [doc/running.md](doc/running.md) — setup, training, prediction API, tests, evaluation
 - [doc/assumptions.md](doc/assumptions.md) — every synthetic/derived field and why it exists
+
+**Model discovery** (mirrors `reports/data_discovery/` from Phase 3, but for
+the feature/model landscape instead of the raw dataset):
+
+- [reports/model_discovery/feature_dataset_inventory.md](reports/model_discovery/feature_dataset_inventory.md) — profile of every `data/features/*.parquet` file
+- [reports/model_discovery/feature_quality.md](reports/model_discovery/feature_quality.md) — provenance (real vs. synthetic), missing values, distributional sanity checks
+- [reports/model_discovery/pipeline_diagram.md](reports/model_discovery/pipeline_diagram.md) — mermaid diagrams: warehouse → features → models → API
+- [reports/model_discovery/feature_mapping.md](reports/model_discovery/feature_mapping.md) — warehouse column → model feature mapping, per domain
+- [reports/model_discovery/training_plan.md](reports/model_discovery/training_plan.md) — approved training rules per domain (splits, hyperparameters, date-anchoring)
+
+**Final Phase 4 reports** (mirrors `reports/warehouse_loading/` from Phase 3):
+
 - [reports/final_phase4/phase4_summary.md](reports/final_phase4/phase4_summary.md) — what was built, deliverable checklist
 - [reports/final_phase4/training_results.md](reports/final_phase4/training_results.md) — every trained model's real metrics
 - [reports/final_phase4/api_examples.md](reports/final_phase4/api_examples.md) — sample request/response per endpoint
