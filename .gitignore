@@ -18,8 +18,10 @@ htmlcov/
 .ipynb_checkpoints/
 *.ipynb_checkpoints/
 
-# Data (large files stay local)
-data/raw/
+# Data (large files stay local; synthetic seed CSVs in data/raw/ are tracked)
+data/raw/*
+!data/raw/room_type_dim.csv
+!data/raw/events_holiday_calendar.csv
 data/processed/
 
 # Trained model artifacts
