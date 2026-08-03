@@ -5,7 +5,11 @@ from fastapi import FastAPI
 from api.model_cache import warm_cache
 from api.routers import churn, insights, occupancy, pricing, rag, restaurant, reviews, staffing
 from genai.config.genai_settings import genai_settings
+from src.mlops.monitoring.metrics_middleware import instrument_app
+from src.mlops.observability.logging_config import configure_mlops_logging
 from src.utils.logging import get_logger
+
+configure_mlops_logging("api", "api.log")
 
 logger = get_logger(__name__)
 
@@ -38,6 +42,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="HotelMind ML Prediction API", lifespan=lifespan)
+instrument_app(app)
 
 app.include_router(occupancy.router, tags=["occupancy"])
 app.include_router(pricing.router, tags=["pricing"])

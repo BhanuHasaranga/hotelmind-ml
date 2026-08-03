@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install ruff
+      - run: ruff check .
+      - run: ruff format --check .
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - run: pytest tests/ -v --cov=src --cov=api --cov=genai --cov-report=term
+      - name: MLOps test suite with coverage gate (skipped until tests/mlops/ lands)
+        if: hashFiles('tests/mlops/**') != ''
+        run: pytest tests/mlops/ tests/test_api_mlops.py -v --cov=src/mlops --cov-fail-under=90 --cov-report=term
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - run: docker build -t hotelmind-ml:ci .
+      - run: docker compose config
+
+  smoke-train:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      # NOTE: scripts/train_all.py has no reduced/synthetic-data fast-run flag
+      # today (only --branch-id/--start-date/--end-date/--mlops, all of which
+      # still train against the full canonical dataset range). This step is
+      # therefore a full (not fast) smoke run of the plain (non --mlops) path,
+      # since --mlops requires a reachable MLflow tracking server this job does
+      # not stand up. Follow-up: add a --fast/--rows-limit flag to train_all.py
+      # if CI runtime becomes a problem.
+      - run: python scripts/train_all.py
+
+  api-validate:
+    runs-on: ubuntu-latest
+    needs: docker-build
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose up -d backend
+      - run: sleep 10
+      - run: curl -f http://localhost:8110/health
+      - run: docker compose down

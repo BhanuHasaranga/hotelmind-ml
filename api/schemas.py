@@ -1,6 +1,14 @@
 from pydantic import BaseModel
 
 
+class ModelMeta(BaseModel):
+    model_version: int | str
+    trained_at: str
+    mlflow_experiment_id: str | None = None
+    latency_ms: float
+    confidence: float | None = None
+
+
 class OccupancyRequest(BaseModel):
     branch_id: int
     horizon_days: int | None = None
@@ -17,6 +25,7 @@ class OccupancyDayForecast(BaseModel):
 class OccupancyResponse(BaseModel):
     branch_id: int
     forecast: list[OccupancyDayForecast]
+    meta: ModelMeta | None = None
 
 
 class PricingRequest(BaseModel):
@@ -35,6 +44,7 @@ class PricingResponse(BaseModel):
     date: str
     recommended_price: float
     expected_revenue: float
+    meta: ModelMeta | None = None
 
 
 class RestaurantRequest(BaseModel):
@@ -57,6 +67,7 @@ class RestaurantResponse(BaseModel):
     breakfast: MealForecast
     lunch: MealForecast
     dinner: MealForecast
+    meta: ModelMeta | None = None
 
 
 class StaffingRequest(BaseModel):
@@ -74,6 +85,7 @@ class StaffingResponse(BaseModel):
     date: str
     required_staff: int
     confidence_note: str
+    meta: ModelMeta | None = None
 
 
 class ChurnRequest(BaseModel):
@@ -86,3 +98,4 @@ class ChurnResponse(BaseModel):
     risk_level: str
     model_used: str
     note: str | None = None
+    meta: ModelMeta | None = None

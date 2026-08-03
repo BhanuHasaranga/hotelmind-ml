@@ -5,7 +5,7 @@ import pandas as pd
 from src.config.settings import settings
 from src.features.calendar_features import add_calendar_features
 from src.features.preprocessing import apply_categorical_encoder, apply_scaler
-from src.models.pricing.xgboost_model import PricingXGBoostModel
+from src.mlops.registry.model_registry import ModelRegistry
 from src.pipelines.pricing_pipeline import (
     CATEGORICAL_COLS,
     FEATURE_COLS,
@@ -24,8 +24,7 @@ def recommend_price(
     revenue_7day_avg: float,
     total_rooms: int,
 ) -> dict:
-    model = PricingXGBoostModel()
-    model.load(settings.model_dir_path / "pricing_xgboost.pkl")
+    model = ModelRegistry().load_production("pricing_xgboost")
 
     room_types = pd.read_csv(_ROOM_TYPE_DIM_PATH)
     room_type = room_types[room_types["room_type_id"] == room_type_id].iloc[0]

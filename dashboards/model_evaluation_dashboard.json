@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-08-03T14:15:02.915009+00:00",
+  "models": [
+    {
+      "model_name": "test",
+      "version": 1,
+      "mae": 1.2,
+      "rmse": null,
+      "mape": null,
+      "accuracy": null,
+      "precision": null,
+      "recall": null,
+      "f1": null,
+      "roc_auc": null,
+      "training_duration_s": null,
+      "evaluated_at": "2026-08-03T14:15:02.914981+00:00"
+    }
+  ]
+}

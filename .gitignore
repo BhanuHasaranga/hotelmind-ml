@@ -33,6 +33,18 @@ models/*.h5
 mlruns/
 mlartifacts/
 
+# Phase 6 MLOps
+logs/
+artifacts/
+models/staging/*
+!models/staging/.gitkeep
+models/production/*
+!models/production/.gitkeep
+models/archived/*
+!models/archived/.gitkeep
+models/registry/*
+!models/registry/.gitkeep
+
 # IDE / OS
 .vscode/
 .idea/

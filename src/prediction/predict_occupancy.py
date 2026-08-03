@@ -1,8 +1,7 @@
 import pandas as pd
 
 from src.config.settings import settings
-from src.models.occupancy.prophet_model import OccupancyProphetModel
-from src.models.occupancy.xgboost_model import OccupancyXGBoostModel
+from src.mlops.registry.model_registry import ModelRegistry
 
 
 def forecast_occupancy(
@@ -22,9 +21,7 @@ def forecast_occupancy(
     """
     horizon_days = horizon_days or settings.FORECAST_HORIZON_DAYS
 
-    prophet_model = OccupancyProphetModel()
-    prophet_path = settings.model_dir_path / "occupancy_prophet.pkl"
-    prophet_model.load(prophet_path)
+    prophet_model = ModelRegistry().load_production("occupancy_prophet")
 
     last_training_date = prophet_model.model.history["ds"].max()
     future_dates = pd.DataFrame(

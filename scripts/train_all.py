@@ -25,6 +25,10 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.mlops.observability.logging_config import configure_mlops_logging  # noqa: E402
+
+configure_mlops_logging("training", "training.log")
+
 from src.pipelines.churn_pipeline import ChurnPipeline  # noqa: E402
 from src.pipelines.feature_engineering import run as run_feature_engineering  # noqa: E402
 from src.pipelines.generate_occupancy_report import run as run_occupancy_report  # noqa: E402
@@ -46,6 +50,13 @@ def main() -> None:
     parser.add_argument("--branch-id", type=int, default=1)
     parser.add_argument("--start-date", type=str, default=CANONICAL_START_DATE)
     parser.add_argument("--end-date", type=str, default=CANONICAL_END_DATE)
+    parser.add_argument(
+        "--mlops",
+        action="store_true",
+        default=False,
+        help="Use the Phase 6 MLOps pipeline classes (MLflow tracking + registry "
+        "registration/auto-promotion) instead of the plain pipelines.",
+    )
     args = parser.parse_args()
 
     start = time.perf_counter()
@@ -56,28 +67,58 @@ def main() -> None:
 
     logger.info("=== 2/3: Training all 5 domains (branch_id=%d, %s..%s) ===", args.branch_id, args.start_date, args.end_date)
 
-    results["occupancy"] = OccupancyPipeline(
-        branch_id=args.branch_id, start_date=args.start_date, end_date=args.end_date
-    ).run()
-    logger.info("occupancy: %s", results["occupancy"])
+    if args.mlops:
+        from src.mlops.pipelines.churn_mlops_pipeline import ChurnMLOpsPipeline
+        from src.mlops.pipelines.occupancy_mlops_pipeline import OccupancyMLOpsPipeline
+        from src.mlops.pipelines.pricing_mlops_pipeline import PricingMLOpsPipeline
+        from src.mlops.pipelines.restaurant_mlops_pipeline import RestaurantMLOpsPipeline
+        from src.mlops.pipelines.staffing_mlops_pipeline import StaffingMLOpsPipeline
 
-    results["pricing"] = PricingPipeline(
-        branch_id=args.branch_id, start_date=args.start_date, end_date=args.end_date
-    ).run()
-    logger.info("pricing: %s", results["pricing"])
+        results["occupancy"] = OccupancyMLOpsPipeline(
+            branch_id=args.branch_id, start_date=args.start_date, end_date=args.end_date
+        ).run_with_mlops()
+        logger.info("occupancy: %s", results["occupancy"])
 
-    results["restaurant"] = RestaurantPipeline(
-        branch_id=args.branch_id, start_date=args.start_date, end_date=args.end_date
-    ).run()
-    logger.info("restaurant: %s", results["restaurant"])
+        results["pricing"] = PricingMLOpsPipeline(
+            branch_id=args.branch_id, start_date=args.start_date, end_date=args.end_date
+        ).run_with_mlops()
+        logger.info("pricing: %s", results["pricing"])
 
-    results["staffing"] = StaffingPipeline(
-        branch_id=args.branch_id, start_date=args.start_date, end_date=args.end_date
-    ).run()
-    logger.info("staffing: %s", results["staffing"])
+        results["restaurant"] = RestaurantMLOpsPipeline(
+            branch_id=args.branch_id, start_date=args.start_date, end_date=args.end_date
+        ).run_with_mlops()
+        logger.info("restaurant: %s", results["restaurant"])
 
-    results["churn"] = ChurnPipeline().run()
-    logger.info("churn: %s", results["churn"])
+        results["staffing"] = StaffingMLOpsPipeline(
+            branch_id=args.branch_id, start_date=args.start_date, end_date=args.end_date
+        ).run_with_mlops()
+        logger.info("staffing: %s", results["staffing"])
+
+        results["churn"] = ChurnMLOpsPipeline().run_with_mlops()
+        logger.info("churn: %s", results["churn"])
+    else:
+        results["occupancy"] = OccupancyPipeline(
+            branch_id=args.branch_id, start_date=args.start_date, end_date=args.end_date
+        ).run()
+        logger.info("occupancy: %s", results["occupancy"])
+
+        results["pricing"] = PricingPipeline(
+            branch_id=args.branch_id, start_date=args.start_date, end_date=args.end_date
+        ).run()
+        logger.info("pricing: %s", results["pricing"])
+
+        results["restaurant"] = RestaurantPipeline(
+            branch_id=args.branch_id, start_date=args.start_date, end_date=args.end_date
+        ).run()
+        logger.info("restaurant: %s", results["restaurant"])
+
+        results["staffing"] = StaffingPipeline(
+            branch_id=args.branch_id, start_date=args.start_date, end_date=args.end_date
+        ).run()
+        logger.info("staffing: %s", results["staffing"])
+
+        results["churn"] = ChurnPipeline().run()
+        logger.info("churn: %s", results["churn"])
 
     logger.info("=== 3/3: Generating occupancy forecast + comparison/leaderboard reports ===")
     run_occupancy_report(branch_id=args.branch_id)

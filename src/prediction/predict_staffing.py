@@ -1,9 +1,8 @@
 import pandas as pd
 
-from src.config.settings import settings
 from src.features.calendar_features import add_calendar_features
 from src.features.preprocessing import apply_categorical_encoder
-from src.models.staffing.regression_model import StaffingRegressionModel
+from src.mlops.registry.model_registry import ModelRegistry
 from src.pipelines.staffing_pipeline import CATEGORICAL_COLS, FEATURE_COLS
 
 
@@ -15,8 +14,7 @@ def recommend_staffing(
     present_employees_lag_7: float,
     present_employees_rolling_mean_7: float,
 ) -> dict:
-    model = StaffingRegressionModel()
-    model.load(settings.model_dir_path / "staffing_regression.pkl")
+    model = ModelRegistry().load_production("staffing_regression")
 
     row = pd.DataFrame(
         [

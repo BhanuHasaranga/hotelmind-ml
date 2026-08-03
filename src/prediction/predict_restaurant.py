@@ -1,9 +1,8 @@
 import pandas as pd
 
 from src.config.constants import MEAL_PERIODS
-from src.config.settings import settings
 from src.features.calendar_features import add_calendar_features
-from src.models.restaurant.xgboost_model import RestaurantDemandModel
+from src.mlops.registry.model_registry import ModelRegistry
 from src.pipelines.restaurant_pipeline import FEATURE_COLS
 
 
@@ -29,8 +28,7 @@ def forecast_restaurant_demand(
 
     result: dict = {"branch_id": branch_id, "date": date}
     for meal in MEAL_PERIODS:
-        model = RestaurantDemandModel()
-        model.load(settings.model_dir_path / f"restaurant_{meal}.pkl")
+        model = ModelRegistry().load_production(f"restaurant_{meal}")
         predicted_revenue = float(model.predict(row[FEATURE_COLS])[0])
         predicted_qty = predicted_revenue / avg_item_value if avg_item_value else 0.0
         result[meal] = {

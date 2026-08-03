@@ -1,0 +1,206 @@
+# HotelMind ML — Phase 6 MLOps stack.
+# Self-contained: distinct host ports from the sibling hotelmind-data stack
+# (which uses 5433/5434/8080/9000/9001). Start with: docker compose up -d
+#
+# Services: backend (FastAPI), mlflow (+ mlflow-db), airflow (webserver +
+# scheduler + init, + airflow-db), prometheus, grafana.
+
+x-airflow-common: &airflow-common
+  build:
+    context: .
+    dockerfile: airflow/Dockerfile
+  environment:
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
+    AIRFLOW__CORE__FERNET_KEY: "81HqDtbfup0W5cv4NiEksmQ8mUEBBekSDzRToMGSgpM="
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
+    # Project root mounted at /opt/airflow/project so DAG task callables can
+    # `from src.mlops... import ...` / `from genai.reviews... import ...`.
+    PYTHONPATH: /opt/airflow/project
+    MLFLOW_TRACKING_URI: http://mlflow:5000
+    MLFLOW_BACKEND_STORE_URI: postgresql://mlflow:mlflow@mlflow-db:5432/mlflow
+  volumes:
+    - ./airflow/dags:/opt/airflow/dags
+    - .:/opt/airflow/project
+    - ./models:/opt/airflow/project/models
+    - ./reports:/opt/airflow/project/reports
+    - ./dashboards:/opt/airflow/project/dashboards
+    - ./data:/opt/airflow/project/data
+    - ./logs:/opt/airflow/project/logs
+    - ./mlruns:/opt/airflow/project/mlruns
+  depends_on:
+    airflow-db:
+      condition: service_healthy
+  networks:
+    - hotelmind-ml-net
+
+services:
+  # ── Backend API ──────────────────────────────────────────────────────────
+  backend:
+    build: .
+    container_name: hotelmind_ml_backend
+    ports:
+      - "8110:8000"
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      MLFLOW_BACKEND_STORE_URI: postgresql://mlflow:mlflow@mlflow-db:5432/mlflow
+    volumes:
+      - ./models:/app/models
+      - ./reports:/app/reports
+      - ./dashboards:/app/dashboards
+      - ./logs:/app/logs
+      - ./mlruns:/app/mlruns
+    depends_on:
+      - mlflow
+    networks:
+      - hotelmind-ml-net
+    restart: unless-stopped
+
+  # ── MLflow tracking server ───────────────────────────────────────────────
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.17.2
+    container_name: hotelmind_ml_mlflow
+    command: >
+      mlflow server
+      --backend-store-uri postgresql://mlflow:mlflow@mlflow-db:5432/mlflow
+      --default-artifact-root /mlartifacts
+      --host 0.0.0.0
+      --port 5000
+    ports:
+      - "5500:5000"
+    volumes:
+      - ./artifacts:/mlartifacts
+    depends_on:
+      mlflow-db:
+        condition: service_healthy
+    networks:
+      - hotelmind-ml-net
+    restart: unless-stopped
+
+  mlflow-db:
+    image: postgres:16-alpine
+    container_name: hotelmind_ml_mlflow_db
+    environment:
+      POSTGRES_USER: mlflow
+      POSTGRES_PASSWORD: mlflow
+      POSTGRES_DB: mlflow
+    ports:
+      - "5544:5432"
+    volumes:
+      - mlflow_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mlflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hotelmind-ml-net
+    restart: unless-stopped
+
+  # ── Airflow metadata DB ──────────────────────────────────────────────────
+  airflow-db:
+    image: postgres:16-alpine
+    container_name: hotelmind_ml_airflow_db
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    ports:
+      - "5545:5432"
+    volumes:
+      - airflow_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hotelmind-ml-net
+    restart: unless-stopped
+
+  # ── Airflow one-shot init (db migrate + admin user) ─────────────────────
+  airflow-init:
+    <<: *airflow-common
+    container_name: hotelmind_ml_airflow_init
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        airflow db migrate
+        airflow users create \
+          --username admin \
+          --password admin \
+          --firstname HotelMind \
+          --lastname Admin \
+          --role Admin \
+          --email admin@hotelmind.ai || true
+    restart: "no"
+
+  # ── Airflow webserver ────────────────────────────────────────────────────
+  airflow-webserver:
+    <<: *airflow-common
+    container_name: hotelmind_ml_airflow_webserver
+    command: webserver
+    ports:
+      - "8180:8080"
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Airflow scheduler ────────────────────────────────────────────────────
+  airflow-scheduler:
+    <<: *airflow-common
+    container_name: hotelmind_ml_airflow_scheduler
+    command: scheduler
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  # ── Prometheus ────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: hotelmind_ml_prometheus
+    ports:
+      - "9190:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - hotelmind-ml-net
+    restart: unless-stopped
+
+  # ── Grafana ───────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: hotelmind_ml_grafana
+    ports:
+      - "3300:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - hotelmind-ml-net
+    restart: unless-stopped
+
+networks:
+  hotelmind-ml-net:
+    driver: bridge
+
+volumes:
+  mlflow_db_data:
+  airflow_db_data:
+  grafana_data:

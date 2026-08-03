@@ -1,0 +1,10 @@
+{
+  "module": "restaurant",
+  "generated_at": "2026-08-03T14:51:24.795430+00:00",
+  "metrics": {
+    "breakfast": {
+      "mae": 1.0
+    }
+  },
+  "extra": {}
+}

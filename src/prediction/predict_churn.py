@@ -5,14 +5,8 @@ import pandas as pd
 from src.config.constants import churn_probability_to_risk_level
 from src.config.settings import settings
 from src.features.churn_features import add_rfm_features, label_churn
-from src.models.churn.random_forest_model import ChurnRandomForestModel
-from src.models.churn.xgboost_model import ChurnXGBoostModel
+from src.mlops.registry.model_registry import ModelRegistry
 from src.pipelines.churn_pipeline import FEATURE_COLS
-
-_MODEL_CLASSES = {
-    "random_forest": ChurnRandomForestModel,
-    "xgboost": ChurnXGBoostModel,
-}
 
 
 def _best_model_key() -> str:
@@ -35,8 +29,7 @@ def _best_model_key() -> str:
 
 def predict_churn(guest_id: str) -> dict:
     model_key = _best_model_key()
-    model = _MODEL_CLASSES[model_key]()
-    model.load(settings.model_dir_path / f"churn_{model_key}.pkl")
+    model = ModelRegistry().load_production(f"churn_{model_key}")
 
     dim_guest = pd.read_parquet(settings.data_warehouse_dir_path / "dim_guest.parquet")
     fact_booking = pd.read_parquet(settings.data_warehouse_dir_path / "fact_booking.parquet")
