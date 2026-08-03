@@ -1,0 +1,40 @@
+{
+    "branch_id": 1,
+    "forecast": [
+        {
+            "date": "2017-04-05",
+            "predicted_occupancy_pct": 50.603308427784064,
+            "ci_lower": 24.705807792351667,
+            "ci_upper": 78.2848089103211,
+            "model_used": "prophet"
+        },
+        {
+            "date": "2017-04-06",
+            "predicted_occupancy_pct": 50.25905575957443,
+            "ci_lower": 21.877485397769675,
+            "ci_upper": 75.6066464239498,
+            "model_used": "prophet"
+        },
+        {
+            "date": "2017-04-07",
+            "predicted_occupancy_pct": 51.197360141995375,
+            "ci_lower": 22.311954781190572,
+            "ci_upper": 77.84718691601323,
+            "model_used": "prophet"
+        },
+        {
+            "date": "2017-04-08",
+            "predicted_occupancy_pct": 54.73861066325097,
+            "ci_lower": 26.994740095184543,
+            "ci_upper": 81.11620870619419,
+            "model_used": "prophet"
+        },
+        {
+            "date": "2017-04-09",
+            "predicted_occupancy_pct": 46.86191513126061,
+            "ci_lower": 18.632763747806603,
+            "ci_upper": 73.332004775452,
+            "model_used": "prophet"
+        }
+    ]
+}

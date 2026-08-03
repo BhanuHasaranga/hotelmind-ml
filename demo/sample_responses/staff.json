@@ -1,0 +1,7 @@
+{
+    "branch_id": 1,
+    "department": "Reception",
+    "date": "2017-09-15",
+    "required_staff": 5,
+    "confidence_note": "Point estimate from GradientBoostingRegressor; shift assignment still requires OR-Tools scheduling (see src/models/staffing/or_tools_scheduler.py TODO)."
+}

@@ -1,0 +1,8 @@
+{
+  "branch_id": 1,
+  "department": "Reception",
+  "date": "2017-09-15",
+  "scheduled_employees": 5,
+  "present_employees_lag_7": 4,
+  "present_employees_rolling_mean_7": 4.5
+}

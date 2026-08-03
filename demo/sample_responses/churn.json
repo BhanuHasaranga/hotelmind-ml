@@ -1,0 +1,7 @@
+{
+    "guest_id": "33462606499639",
+    "churn_probability": 0.0002,
+    "risk_level": "Low",
+    "model_used": "xgboost",
+    "note": null
+}

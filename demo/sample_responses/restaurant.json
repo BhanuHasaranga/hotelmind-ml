@@ -1,0 +1,16 @@
+{
+    "branch_id": 1,
+    "date": "2017-09-15",
+    "breakfast": {
+        "expected_quantity": 26.6,
+        "expected_revenue": 372.62
+    },
+    "lunch": {
+        "expected_quantity": 20.3,
+        "expected_revenue": 283.96
+    },
+    "dinner": {
+        "expected_quantity": 40.1,
+        "expected_revenue": 561.65
+    }
+}

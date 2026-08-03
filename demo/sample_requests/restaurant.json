@@ -1,0 +1,8 @@
+{
+  "branch_id": 1,
+  "date": "2017-09-15",
+  "recent_total_orders_lag_1": 60,
+  "recent_total_orders_lag_7": 65,
+  "recent_total_orders_rolling_mean_7": 62,
+  "avg_item_value": 14.0
+}
