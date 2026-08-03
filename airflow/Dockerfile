@@ -2,8 +2,11 @@ FROM apache/airflow:2.9.3-python3.12
 
 COPY requirements-training.txt /requirements-training.txt
 
-# Install against Airflow's own constraints file to avoid dependency-resolution
-# fights with Airflow's pinned transitive deps (Airflow images are picky about
-# this - see https://airflow.apache.org/docs/apache-airflow/stable/installation/installing-from-pypi.html).
-RUN pip install --no-cache-dir -r /requirements-training.txt \
-    --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.9.3/constraints-3.12.txt"
+# NOTE: deliberately NOT installed against Airflow's own constraints file.
+# That constraints file pins pandas==2.1.4 (Airflow's own transitive pin),
+# which conflicts with this project's pandas>=2.2 requirement used by the
+# ML training/feature code. requirements-training.txt only adds packages
+# Airflow itself does not depend on (pandas/numpy/scikit-learn/xgboost/
+# prophet/mlflow/evidently/etc.), so an unconstrained install here is safe
+# and won't touch any package Airflow's core needs.
+RUN pip install --no-cache-dir -r /requirements-training.txt

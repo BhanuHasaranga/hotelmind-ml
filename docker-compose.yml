@@ -60,7 +60,9 @@ services:
 
   # ── MLflow tracking server ───────────────────────────────────────────────
   mlflow:
-    image: ghcr.io/mlflow/mlflow:v2.17.2
+    build:
+      context: .
+      dockerfile: mlflow.Dockerfile
     container_name: hotelmind_ml_mlflow
     command: >
       mlflow server
