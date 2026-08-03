@@ -8,6 +8,18 @@ README.md "Roadmap").
 
 ## [Unreleased]
 
+### Added — Phase 5: Generative AI Layer
+- `genai/` subpackage: LLM provider abstraction (`llm/base.py`, `openai_provider.py`, `gemini_provider.py`, `ollama_provider.py`, `factory.py`) selected purely by `LLM_PROVIDER` config, with token-usage/latency logging (`observability/llm_logging.py`) and a SQLite-backed embedding/query cache (`cache/query_cache.py`).
+- `genai/data_access/` — `DATA_SOURCE=postgres|local` mart abstraction; local path synthesizes small mart-equivalent snapshots under `data/warehouse/` if the live warehouse marts aren't populated.
+- Module 1 — Guest Review Analysis: `genai/reviews/synthetic_reviews.py` (seeded, English-majority with Sinhala/Tamil samples, 50k-100k rows), `pipeline.py` (sentiment, emotion, complaint detection, LDA topics, TF-IDF/KeyBERT keywords, LLM summarization, CSAT scoring, trend detection), `service.py` (precompute-then-query pattern).
+- Module 2 — Hotel AI Assistant (RAG): loaders (PDF/Markdown/CSV/TXT/warehouse/prediction), `chunking.py`, `embeddings.py`, FAISS `vector_store/` with citation metadata, hybrid dense+BM25 `retriever.py`, `memory.py` (session memory), `chains/qa_chain.py` (retrieval → LLM → cited answer), `indexer.py` (full + incremental rebuild), SSE streaming support. Real starter documents: `genai/rag/documents/hotel_policies.md`, `hotel_sop.md`.
+- Module 3 — AI Insights Generator: rule modules per category (revenue, occupancy, pricing, guest_experience, restaurant_waste, staff, churn, anomaly), `scoring.py`/`priority.py`, `service.py` producing structured JSON findings with LLM-generated (or rule-based fallback) recommendations.
+- Versioned prompts (`genai/prompts/system/*.md`) + `loader.py`.
+- New API routers: `api/routers/reviews.py`, `api/routers/rag.py` (incl. SSE `/rag/query`), `api/routers/insights.py`; `api/schemas_genai.py`; wired into `api/main.py` with a graceful, non-failing RAG index warm-up at startup.
+- `tests/genai/` — 300+ new tests (offline, fake LLM providers, fake embedder), ≥90% coverage on `genai/`.
+- `docs/phase5.md` — architecture, RAG/insights sequence diagrams, LLM provider class diagram, full API reference, deployment notes.
+- New dependencies: `langchain`, `langchain-community`, `faiss-cpu`, `sentence-transformers`, `openai`, `google-genai`, `ollama`, `pypdf`, `keybert`, `sse-starlette`, `rank-bm25`.
+
 ### Added — Phase 4 Release Preparation
 - `demo/` — sample API requests/responses for all 5 prediction endpoints, generated from the live API against trained models.
 - `docs/api/` — per-endpoint API reference (purpose, request/response schema, validation, errors, curl example).

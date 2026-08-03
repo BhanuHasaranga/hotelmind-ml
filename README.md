@@ -1,10 +1,15 @@
-# HotelMind ML — Phase 4 (Machine Learning)
+# HotelMind ML — Phase 4 (Machine Learning) + Phase 5 (Generative AI)
 
 Phase 4 of the **HotelMind AI** portfolio project. Builds five ML modules —
 occupancy forecasting, dynamic pricing, restaurant demand, staff
 optimization, and customer churn — served by a FastAPI prediction API,
 reading **only** from local parquet files produced by Phase 3. No live
 Postgres connection is required to train, predict, or run the API.
+
+Phase 5 adds a Generative AI layer (`genai/`) on top: guest review
+analysis, a RAG-based Hotel AI Assistant, and an AI Insights Generator —
+see [docs/phase5.md](docs/phase5.md) for full architecture, API reference,
+and deployment notes.
 
 ## Project Overview
 
@@ -33,10 +38,23 @@ flowchart LR
     TR --> MD["models/*.pkl"]
     MD --> API["FastAPI Prediction API"]
     API --> CL["Client (curl / Swagger UI)"]
+
+    WH --> DA["genai/data_access"]
+    MD --> Predict["src/prediction/predict_*.py"]
+    Predict --> RAG["genai/rag (RAG Assistant)"]
+    DA --> RAG
+    DA --> Insights["genai/insights (AI Insights)"]
+    Predict --> Insights
+    Reviews["genai/reviews (Review Analysis)"] --> Insights
+    RAG --> API
+    Insights --> API
+    Reviews --> API
 ```
 
 Full diagrams: [docs/architecture/](docs/architecture/) (system overview,
-Phase 4 pipeline, training pipeline, prediction flow — all Mermaid).
+Phase 4 pipeline, training pipeline, prediction flow — all Mermaid) and
+[docs/phase5.md](docs/phase5.md) (Phase 5 GenAI architecture, RAG flow,
+insights flow, LLM provider abstraction).
 
 ## Installation
 
@@ -102,6 +120,14 @@ schema, validation, errors, curl example): [docs/api/](docs/api/).
 | `POST /predict/staff` | Staff optimization |
 | `POST /predict/churn` | Customer churn |
 | `GET /health` | Health check |
+| `POST /reviews/analyze` | Run guest review analysis pipeline |
+| `GET /reviews/summary` \| `/topics` \| `/complaints` \| `/trends` | Persisted review analysis outputs |
+| `POST /rag/index` \| `/rag/reindex` | Build/rebuild the RAG vector index |
+| `GET /rag/stats` | RAG index status |
+| `POST /rag/query` | Ask the Hotel AI Assistant (JSON or SSE streaming) |
+| `GET /insights` \| `/insights/executive` \| `/insights/recommendations` \| `/insights/anomalies` | AI Insights Generator |
+
+Phase 5 endpoint details: [docs/phase5.md](docs/phase5.md#api-reference).
 
 Real example requests/responses (captured from the live API against trained
 models, no placeholders): [demo/](demo/).
@@ -124,11 +150,21 @@ python scripts/verify_phase4.py
 
 ```
 hotelmind-ml/
-├── api/                    FastAPI prediction service (main.py, schemas.py, routers/)
+├── api/                    FastAPI prediction service (main.py, schemas.py, schemas_genai.py, routers/)
+├── genai/                  Phase 5 Generative AI layer
+│   ├── config/               genai_settings.py
+│   ├── llm/                   provider ABC + OpenAI/Gemini/Ollama + factory
+│   ├── data_access/            DATA_SOURCE=postgres|local mart abstraction
+│   ├── reviews/                 Module 1: synthetic reviews, pipeline, service
+│   ├── rag/                      Module 2: loaders, chunking, embeddings, FAISS, retriever, chains, indexer
+│   ├── insights/                  Module 3: rules, scoring, priority, service
+│   ├── prompts/                    versioned system prompts + loader
+│   ├── observability/               LLM call token/latency logging
+│   └── cache/                        SQLite embedding/query cache
 ├── data/
-│   ├── raw/                 seed CSVs incl. synthetic Restaurant/Staffing data
-│   ├── processed/            Phase 3 cleaned dataset
-│   ├── warehouse/            Phase 3 star-schema warehouse
+│   ├── raw/                 seed CSVs incl. synthetic Restaurant/Staffing/Reviews data
+│   ├── processed/            Phase 3 cleaned dataset + Phase 5 review analysis outputs
+│   ├── warehouse/            Phase 3 star-schema warehouse + local mart snapshots
 │   └── features/              Phase 4 feature datasets
 ├── demo/                    real sample requests/responses per endpoint
 ├── docs/
@@ -136,7 +172,8 @@ hotelmind-ml/
 │   ├── architecture/          Mermaid architecture diagrams
 │   ├── models/                 model cards (one per domain)
 │   ├── datasets/                dataset/warehouse/synthetic-data documentation
-│   └── demo/                    portfolio screenshot checklist
+│   ├── demo/                    portfolio screenshot checklist
+│   └── phase5.md                Phase 5 GenAI architecture, API reference, deployment notes
 ├── doc/                     original Phase 4 architecture/running/assumptions docs
 ├── models/                  trained joblib artifacts (*.pkl)
 ├── reports/
@@ -158,7 +195,7 @@ hotelmind-ml/
 │   ├── prediction/                   predict_*.py — used by both CLI and API
 │   ├── evaluation/                    metrics.py, report_writer.py
 │   └── utils/                          logging
-├── tests/                   75 pytest tests
+├── tests/                   300+ pytest tests (incl. tests/genai/)
 ├── CHANGELOG.md
 ├── LICENSE
 └── requirements.txt
@@ -171,7 +208,7 @@ hotelmind-ml/
 ✅ Phase 2 – Hotel Management System
 ✅ Phase 3 – Data Engineering
 ✅ Phase 4 – Machine Learning
-⬜ Phase 5 – AI Assistant
+✅ Phase 5 – AI Assistant
 ⬜ Phase 6 – MLOps
 ⬜ Phase 7 – Cloud Deployment
 ```
