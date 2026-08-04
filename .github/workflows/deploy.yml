@@ -1,0 +1,34 @@
+name: Deploy to droplet
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/hotelmind/hotelmind-ml
+            git fetch origin main
+            git reset --hard origin/main
+            cd /opt/hotelmind/hotelmind-infra
+            docker compose build ml-backend mlflow airflow-webserver airflow-scheduler
+            docker compose up -d ml-backend mlflow airflow-webserver airflow-scheduler
+            sleep 8
+            curl -sf http://127.0.0.1:8110/docs -o /dev/null || {
+              echo "Health check failed — rolling back"
+              cd /opt/hotelmind/hotelmind-ml
+              git reset --hard HEAD@{1}
+              cd /opt/hotelmind/hotelmind-infra
+              docker compose build ml-backend mlflow airflow-webserver airflow-scheduler
+              docker compose up -d ml-backend mlflow airflow-webserver airflow-scheduler
+              exit 1
+            }
