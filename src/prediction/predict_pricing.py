@@ -49,7 +49,10 @@ def recommend_price(
     row = apply_categorical_encoder(row, CATEGORICAL_COLS, model.encoders["categorical"])
     row = apply_scaler(row, NUMERIC_FEATURE_COLS, model.scaler)
 
-    recommended_price = float(model.predict(row[FEATURE_COLS])[0])
+    # The regressor has no output constraint and can extrapolate to a
+    # negative price for inputs far outside the training distribution.
+    # A room price is never valid below zero regardless of model output.
+    recommended_price = max(0.0, float(model.predict(row[FEATURE_COLS])[0]))
     expected_revenue = recommended_price * current_occupancy_pct / 100.0 * total_rooms
 
     return {
