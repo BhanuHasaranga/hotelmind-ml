@@ -23,7 +23,10 @@ def _warm_rag_index() -> None:
         logger.info("ENABLE_RAG is false; skipping RAG index warm-up")
         return
     try:
+        from genai.rag.embeddings import get_embedder
         from genai.rag.vector_store.faiss_store import FaissVectorStore
+
+        get_embedder().embed_text("warmup")
 
         store = FaissVectorStore()
         if store.load():
