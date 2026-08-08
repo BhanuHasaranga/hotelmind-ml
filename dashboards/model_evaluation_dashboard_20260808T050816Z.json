@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-08-08T05:08:16.427647+00:00",
+  "models": [
+    {
+      "model_name": "pricing_xgboost",
+      "version": 4,
+      "mae": 25.57057002728833,
+      "rmse": 32.79271677275491,
+      "mape": 20.60840586187818,
+      "accuracy": null,
+      "precision": null,
+      "recall": null,
+      "f1": null,
+      "roc_auc": null,
+      "training_duration_s": 75.25157813800024,
+      "evaluated_at": "2026-08-08T05:08:16.420612+00:00"
+    }
+  ]
+}

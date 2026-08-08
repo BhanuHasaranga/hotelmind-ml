@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-08-08T05:11:25.686209+00:00",
+  "models": [
+    {
+      "model_name": "staffing_regression",
+      "version": 4,
+      "mae": 0.7304929371476284,
+      "rmse": 0.8622775053538477,
+      "mape": 6.522215861133421,
+      "accuracy": null,
+      "precision": null,
+      "recall": null,
+      "f1": null,
+      "roc_auc": null,
+      "training_duration_s": 0.6678215649999402,
+      "evaluated_at": "2026-08-08T05:11:25.677044+00:00"
+    }
+  ]
+}

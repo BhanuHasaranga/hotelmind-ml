@@ -1,0 +1,33 @@
+{
+  "generated_at": "2026-08-08T05:11:28.847285+00:00",
+  "models": [
+    {
+      "model_name": "churn_random_forest",
+      "version": 4,
+      "mae": null,
+      "rmse": null,
+      "mape": null,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "roc_auc": 1.0,
+      "training_duration_s": 1.4373029539997333,
+      "evaluated_at": "2026-08-08T05:11:28.410914+00:00"
+    },
+    {
+      "model_name": "churn_xgboost",
+      "version": 4,
+      "mae": null,
+      "rmse": null,
+      "mape": null,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "roc_auc": 1.0,
+      "training_duration_s": 1.4373029539997333,
+      "evaluated_at": "2026-08-08T05:11:28.837349+00:00"
+    }
+  ]
+}

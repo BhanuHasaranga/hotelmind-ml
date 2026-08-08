@@ -1,0 +1,33 @@
+{
+  "generated_at": "2026-08-08T04:55:51.623932+00:00",
+  "models": [
+    {
+      "model_name": "occupancy_xgboost",
+      "version": 3,
+      "mae": 4.794904273233296,
+      "rmse": 8.053925229686456,
+      "mape": 78.24928068050974,
+      "accuracy": null,
+      "precision": null,
+      "recall": null,
+      "f1": null,
+      "roc_auc": null,
+      "training_duration_s": 154.10069287199985,
+      "evaluated_at": "2026-08-08T04:55:50.644755+00:00"
+    },
+    {
+      "model_name": "occupancy_prophet",
+      "version": 3,
+      "mae": 37.587648417397546,
+      "rmse": 39.40247823677521,
+      "mape": 122.42840467125029,
+      "accuracy": null,
+      "precision": null,
+      "recall": null,
+      "f1": null,
+      "roc_auc": null,
+      "training_duration_s": 154.10069287199985,
+      "evaluated_at": "2026-08-08T04:55:51.607098+00:00"
+    }
+  ]
+}
