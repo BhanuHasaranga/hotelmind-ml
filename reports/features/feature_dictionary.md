@@ -5,11 +5,11 @@
 | Column | Dtype |
 |---|---|
 | branch_id | int64 |
-| occupancy_date | datetime64[us] |
+| occupancy_date | datetime64[ns] |
 | occupied_rooms | int64 |
 | total_revenue | float64 |
 | avg_daily_rate | float64 |
-| branch_name | str |
+| branch_name | object |
 | total_rooms | int64 |
 | occupancy_pct | float64 |
 | revenue_7day_avg | float64 |
@@ -19,10 +19,10 @@
 | quarter | int32 |
 | day_of_week | int32 |
 | is_weekend | int64 |
-| season | str |
+| season | object |
 | is_public_holiday | int64 |
 | is_local_event | int64 |
-| event_name | str |
+| event_name | object |
 | is_holiday | int64 |
 | is_event | int64 |
 | occupancy_pct_lag_1 | float64 |
@@ -38,11 +38,11 @@
 | Column | Dtype |
 |---|---|
 | branch_id | int64 |
-| date | datetime64[us] |
+| date | datetime64[ns] |
 | occupied_rooms | int64 |
 | total_revenue | float64 |
 | avg_daily_rate | float64 |
-| branch_name | str |
+| branch_name | object |
 | total_rooms | int64 |
 | occupancy_pct | float64 |
 | revenue_7day_avg | float64 |
@@ -55,7 +55,7 @@
 | season | float64 |
 | is_public_holiday | int64 |
 | is_local_event | int64 |
-| event_name | str |
+| event_name | object |
 | is_holiday | int64 |
 | is_event | int64 |
 | demand_index | float64 |
@@ -67,7 +67,7 @@
 | Column | Dtype |
 |---|---|
 | branch_id | int64 |
-| date | datetime64[us] |
+| date | datetime64[ns] |
 | breakfast_revenue | float64 |
 | lunch_revenue | float64 |
 | dinner_revenue | float64 |
@@ -79,10 +79,10 @@
 | quarter | int32 |
 | day_of_week | int32 |
 | is_weekend | int64 |
-| season | str |
+| season | object |
 | is_public_holiday | int64 |
 | is_local_event | int64 |
-| event_name | str |
+| event_name | object |
 | is_holiday | int64 |
 | is_event | int64 |
 | breakfast_qty | float64 |
@@ -100,7 +100,7 @@
 | Column | Dtype |
 |---|---|
 | branch_id | int64 |
-| date | datetime64[us] |
+| date | datetime64[ns] |
 | department_name | float64 |
 | department_id | int64 |
 | present_employees | int64 |
@@ -109,10 +109,10 @@
 | quarter | int32 |
 | day_of_week | int32 |
 | is_weekend | int64 |
-| season | str |
+| season | object |
 | is_public_holiday | int64 |
 | is_local_event | int64 |
-| event_name | str |
+| event_name | object |
 | is_holiday | int64 |
 | is_event | int64 |
 | present_employees_lag_1 | float64 |

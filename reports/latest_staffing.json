@@ -1,6 +1,6 @@
 {
   "module": "staffing",
-  "generated_at": "2026-07-31T15:55:24.794829+00:00",
+  "generated_at": "2026-08-08T05:11:25.677076+00:00",
   "metrics": {
     "regression": {
       "mae": 0.7304929371476284,

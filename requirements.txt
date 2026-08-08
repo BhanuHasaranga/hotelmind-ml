@@ -5,6 +5,9 @@ scikit-learn>=1.5,<2.0
 xgboost>=2.1,<3.0
 prophet>=1.1,<2.0
 joblib>=1.4,<2.0
+# Prophet serializes models via dill; the serving image needs it to unpickle
+# artifacts written by the training image (which gets dill transitively).
+dill>=0.3.8,<0.4
 psycopg2-binary>=2.9,<3.0
 pydantic>=2.9,<3.0
 pydantic-settings>=2.6,<3.0

@@ -1,6 +1,6 @@
 {
   "module": "churn",
-  "generated_at": "2026-07-31T15:57:26.288056+00:00",
+  "generated_at": "2026-08-08T05:11:28.837381+00:00",
   "metrics": {
     "random_forest": {
       "accuracy": 1.0,
@@ -10,10 +10,10 @@
       "roc_auc": 1.0
     },
     "xgboost": {
-      "accuracy": 0.9991189427312775,
-      "precision": 0.998589562764457,
+      "accuracy": 1.0,
+      "precision": 1.0,
       "recall": 1.0,
-      "f1": 0.9992942836979535,
+      "f1": 1.0,
       "roc_auc": 1.0
     }
   },

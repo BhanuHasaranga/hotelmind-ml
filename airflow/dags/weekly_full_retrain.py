@@ -25,17 +25,24 @@ default_args = {
 }
 
 
-def _run_domain(domain: str, pipeline_cls: type) -> bool:
+# Training window and branch mirror scripts/train_all.py so a scheduled retrain
+# produces the same artifacts as a manual one. Churn is branch/date agnostic.
+CANONICAL_BRANCH_ID = 1
+CANONICAL_START_DATE = "2015-07-01"
+CANONICAL_END_DATE = "2017-09-13"
+
+
+def _run_domain(domain: str, pipeline_cls: type, **kwargs) -> bool:
     from src.utils.logging import get_logger
 
     logger = get_logger(__name__)
     try:
-        pipeline = pipeline_cls()
+        pipeline = pipeline_cls(**kwargs)
         summary = pipeline.run_with_mlops()
         logger.info("weekly_full_retrain: domain=%s summary=%s", domain, summary)
         return True
-    except Exception as exc:
-        logger.warning("weekly_full_retrain: domain=%s failed: %s", domain, exc)
+    except Exception:
+        logger.exception("weekly_full_retrain: domain=%s failed", domain)
         return False
 
 
@@ -45,20 +52,34 @@ def _run_weekly_full_retrain() -> None:
     from src.mlops.pipelines.pricing_mlops_pipeline import PricingMLOpsPipeline
     from src.mlops.pipelines.restaurant_mlops_pipeline import RestaurantMLOpsPipeline
     from src.mlops.pipelines.staffing_mlops_pipeline import StaffingMLOpsPipeline
+    from src.pipelines.feature_engineering import run as run_feature_engineering
     from src.utils.logging import get_logger
 
     logger = get_logger(__name__)
 
-    domains: dict[str, type] = {
-        "occupancy": OccupancyMLOpsPipeline,
-        "pricing": PricingMLOpsPipeline,
-        "restaurant": RestaurantMLOpsPipeline,
-        "staffing": StaffingMLOpsPipeline,
-        "churn": ChurnMLOpsPipeline,
+    run_feature_engineering()
+
+    windowed = {
+        "branch_id": CANONICAL_BRANCH_ID,
+        "start_date": CANONICAL_START_DATE,
+        "end_date": CANONICAL_END_DATE,
+    }
+    domains: dict[str, tuple[type, dict]] = {
+        "occupancy": (OccupancyMLOpsPipeline, windowed),
+        "pricing": (PricingMLOpsPipeline, windowed),
+        "restaurant": (RestaurantMLOpsPipeline, windowed),
+        "staffing": (StaffingMLOpsPipeline, windowed),
+        "churn": (ChurnMLOpsPipeline, {}),
     }
 
-    results = {domain: _run_domain(domain, cls) for domain, cls in domains.items()}
+    results = {
+        domain: _run_domain(domain, cls, **kwargs) for domain, (cls, kwargs) in domains.items()
+    }
     logger.info("weekly_full_retrain complete: %s", results)
+
+    failed = [domain for domain, ok in results.items() if not ok]
+    if failed:
+        raise RuntimeError(f"weekly_full_retrain: domains failed: {', '.join(failed)}")
 
 
 def _register_sentiment_lexicon_snapshot() -> None:
